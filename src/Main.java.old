@@ -1,0 +1,105 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class Main {
+
+    private static int rows, cols, radius;
+    private static final int PEAK_MIN = 90;
+
+    public static void main(String[] args) {
+        
+        int[][] values = loadFile("src/TEST.TXT");
+        Peak[] peaks = new Peak[rows*cols];
+        int peakIndex = 0;
+        
+        if (values != null) {
+            int[] frequency = new int[99000];
+            for (int col = 0; col < cols; col++) {
+                for (int row = 0; row < rows; row++) {
+
+                    frequency[values[col][row]]++;
+
+                    if (values[col][row] >= PEAK_MIN) {
+                        if (isPeak(values, row, col)) {
+                            peaks[peakIndex] = new Peak(row, col, values[col][row]);
+                            peakIndex++;
+                        }
+                    }
+
+                }
+            } 
+            
+            /* Question 1 output */
+            int index = 0;
+            while (true) {
+                if (frequency[index] > 0) {
+                    System.out.println("The lowest peak is " + index +
+                                        ". It occurs " + frequency[index] +
+                                        " times in the map");
+                    break;
+                }
+                index++;
+            }
+
+
+            /* Question 2 output */
+            peaks = Arrays.copyOf(peaks, peakIndex);
+            System.out.println("The total number of peaks is " + peaks.length + ".");
+            for (Peak peak : peaks) {
+                System.out.println(peak);
+            }
+        }    
+    }
+
+    private static boolean isPeak(int[][] values, int row, int col) {
+
+        if (row < radius || row > rows - radius || col < radius || col > cols - radius) 
+            return false;
+
+        for (int x = col - radius; x < col + radius; x++) 
+            for (int y = row - radius; y < row + radius; y++) 
+                if (values[x][y] >= values[col][row] && !(col == x && row == y)) 
+                    return false;
+
+        return true;
+    }
+
+    private static int[][] loadFile(final String fileName) {
+        File file = new File(fileName);
+        Scanner fileInput = null;
+        try {
+            fileInput = new Scanner(file);
+
+            rows = fileInput.nextInt();
+            cols = fileInput.nextInt();
+            radius = fileInput.nextInt();
+
+            int[][] output = new int[rows][cols];
+
+            int currentRow = 0;
+            int currentCol = 0;
+            while (fileInput.hasNextInt()) {
+
+                output[currentCol][currentRow] = fileInput.nextInt();
+
+                if (currentRow == rows - 1) {
+                    currentRow = 0;
+                    currentCol++;
+                } else {
+                    currentRow++;
+                }
+            }
+
+            fileInput.close();
+            return output;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (fileInput != null)
+                fileInput.close();
+        }
+        return null;
+    }
+}
